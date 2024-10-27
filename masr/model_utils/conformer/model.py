@@ -219,7 +219,7 @@ class ConformerModel(torch.nn.Module):
         return ctc_probs, att_cache, cnn_cache
 
     @torch.jit.export
-    def forward_attention_decoder(
+    def get_decoder_out(
             self,
             hyps: torch.Tensor,
             hyps_lens: torch.Tensor,

@@ -591,16 +591,13 @@ class MASRTrainer(object):
 
     def export(self,
                save_model_path='models/',
-               resume_model='models/ConformerModel_fbank/best_model/',
-               save_quant=False):
+               resume_model='models/ConformerModel_fbank/best_model/'):
         """导出预测模型
 
         :param save_model_path: 模型保存的路径
         :type save_model_path: str
         :param resume_model: 准备转换的模型路径
         :type resume_model: str
-        :param save_quant: 是否保存量化模型
-        :type save_quant: bool
         :return:
         """
         # 获取训练数据
@@ -632,13 +629,6 @@ class MASRTrainer(object):
         os.makedirs(save_model_dir, exist_ok=True)
         torch.jit.save(infer_model, infer_model_path)
         logger.info("预测模型已保存：{}".format(infer_model_path))
-        # 保存量化模型
-        if save_quant:
-            quant_model_path = os.path.join(os.path.dirname(infer_model_path), 'inference_quant.pth')
-            quantized_model = torch.quantization.quantize_dynamic(self.model)
-            script_quant_model = torch.jit.script(quantized_model)
-            torch.jit.save(script_quant_model, quant_model_path)
-            logger.info("量化模型已保存：{}".format(quant_model_path))
         # 复制词汇表模型
         shutil.copytree(tokenizer.vocab_model_dir, os.path.join(save_model_dir, 'vocab_model'))
         # 保存配置信息
@@ -648,6 +638,9 @@ class MASRTrainer(object):
                 'model_name': self.configs.model_conf.model,
                 'streaming': self.configs.model_conf.model_args.streaming,
                 'sample_rate': self.configs.dataset_conf.dataset.sample_rate,
-                'preprocess_conf': self.configs.preprocess_conf
+                'preprocess_conf': self.configs.preprocess_conf,
             }
+            if self.configs.model_conf.model != "DeepSpeech2Model":
+                inference_config['symbol'] = {'sos': self.model.sos_symbol(), 'eos': self.model.eos_symbol(),
+                                              'ignore_id': self.model.ignore_symbol()}
             json.dump(inference_config, f, indent=4, ensure_ascii=False)

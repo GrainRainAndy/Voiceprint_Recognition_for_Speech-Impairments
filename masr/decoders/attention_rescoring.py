@@ -61,7 +61,7 @@ def attention_rescoring(
 
         # ctc score in ln domain
         # (beam_size, max_hyps_len, vocab_size)
-        decoder_out, r_decoder_out = model.forward_attention_decoder(hyps_pad, hyps_lens, encoder_out, reverse_weight)
+        decoder_out, r_decoder_out = model.get_decoder_out(hyps_pad, hyps_lens, encoder_out, reverse_weight)
 
         # Only use decoder score for rescoring
         best_score = -float('inf')

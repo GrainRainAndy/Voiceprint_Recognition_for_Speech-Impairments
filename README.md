@@ -50,9 +50,9 @@ MASR是一款基于Pytorch实现的自动语音识别框架，MASR全称是神�
 
 |    使用模型     | 是否为流式 | 预处理方式 |          解码方式          | 自带的测试集  |   下载地址   |
 |:-----------:|:-----:|:-----:|:----------------------:|:-------:|:--------:|
-|  Conformer  | True  | fbank |   ctc_greedy_search    | 0.06134 | 加入知识星球获取 |
-|  Conformer  | True  | fbank | ctc_prefix_beam_search | 0.06132 | 加入知识星球获取 |
-|  Conformer  | True  | fbank |  attention_rescoring   | 0.05366 | 加入知识星球获取 |
+|  Conformer  | True  | fbank |   ctc_greedy_search    | 0.06052 | 加入知识星球获取 |
+|  Conformer  | True  | fbank | ctc_prefix_beam_search | 0.06055 | 加入知识星球获取 |
+|  Conformer  | True  | fbank |  attention_rescoring   | 0.05442 | 加入知识星球获取 |
 | DeepSpeech2 | True  | fbank |   ctc_greedy_search    | 0.12000 | 加入知识星球获取 |
 
 

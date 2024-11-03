@@ -425,8 +425,6 @@ class MASRPredictor:
         # 如果是静音并且推理音频时间足够长，重置流式识别状态，以免显存不足
         if (len(vad_state) > 0 and vad_state[-1][0] != -1 and self.last_chunk_time > self.reset_state_time) or is_final:
             self.reset_predictor()
-            if is_final:
-                self.reset_stream_state()
             self.last_chunk_time = 0
             # 加标点符号
             if use_punc and len(self.last_chunk_text) > 0:

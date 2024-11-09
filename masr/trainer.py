@@ -388,7 +388,7 @@ class MASRTrainer(object):
         :type annotation_path: str
         :param num_samples: 用于计算均值和标准值得音频数量，当为-1使用全部数据
         :type num_samples: int
-        :param max_test_manifest: 生成测试数据列表的最大数量，如果annotation_path包含了test.txt，就全部使用test.txt的数据
+        :param max_test_manifest: 生成测试数据列表的最大数量，如果annotation_path包含了test*.txt，就全部使用test*.txt的数据
         :type max_test_manifest: int
         :param only_build_vocab: 是否只生成词汇表模型文件，不进行其他操作
         :type only_build_vocab: bool

@@ -33,7 +33,9 @@ add_arg('use_pun',          bool,   False,         "是否给识别结果加标�
 add_arg('model_dir',        str,    'models/ConformerModel_fbank/inference_model/', "导出的预测模型文件夹路径")
 add_arg('decoder',          str,   'ctc_greedy_search',     "解码器，支持 ctc_greedy_search、ctc_prefix_beam_search、attention_rescoring")
 add_arg('decoder_configs',  str,    'configs/decoder.yml',  "解码器配置参数文件路径")
-add_arg('pun_model_dir',    str,    'models/pun_models/',   "加标点符号的模型文件夹路径")
+add_arg('punc_device_id',   str,    '-1',                   "标点符合模型使用的设备，-1表示使用CPU预测，否则使用指定GPU预测")
+add_arg('punc_model_dir',   str,    None,                   "标点符号的模型文件夹路径")
+add_arg('punc_online_model_dir',    str,   None,            "流式标点符号的模型文件夹路径")
 args = parser.parse_args()
 print_arguments(args=args)
 
@@ -91,8 +93,9 @@ class SpeechRecognitionApp:
                                            use_gpu=args.use_gpu,
                                            decoder=args.decoder,
                                            decoder_configs=args.decoder_configs,
-                                           use_pun=args.use_pun,
-                                           pun_model_dir=args.pun_model_dir)
+                                           punc_device_id=args.punc_device_id,
+                                           punc_model_dir=args.punc_model_dir,
+                                           punc_online_model_dir=args.punc_online_model_dir)
 
     # 是否对文本进行反标准化
     def is_itn_state(self):

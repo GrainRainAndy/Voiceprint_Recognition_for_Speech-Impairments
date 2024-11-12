@@ -476,7 +476,9 @@ class MASRTrainer(object):
             self.model.to(self.local_rank)
             self.model = torch.nn.parallel.DistributedDataParallel(self.model, device_ids=[self.local_rank])
         if self.local_rank == 0:
-            logger.info(f'训练数据：{len(self.train_dataset)}，词汇表大小：{self.tokenizer.vocab_size}')
+            logger.info(f'词汇表大小：{self.tokenizer.vocab_size}')
+            logger.info(f'训练数据：{len(self.train_dataset)}')
+            logger.info(f'评估数据：{len(self.test_dataset)}')
 
         self.train_loss, self.eval_loss = None, None
         self.test_log_step, self.train_log_step = 0, 0

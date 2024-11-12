@@ -56,7 +56,7 @@ MASR是一款基于Pytorch实现的自动语音识别框架，MASR全称是神�
 | DeepSpeech2 | True  | fbank |   ctc_greedy_search    | 0.12000 | 加入知识星球获取 |
 
 
-3. [Librispeech](https://openslr.magicdatatech.com/resources/12) (960小时，普通话) 的预训练模型列表，错误率类型为词错率（WER）：
+3. [Librispeech](https://openslr.magicdatatech.com/resources/12) (960小时，英语) 的预训练模型列表，错误率类型为词错率（WER）：
 
 |    使用模型     | 是否为流式 | 预处理方式 |          解码方式          | 自带的测试集  |   下载地址   |
 |:-----------:|:-----:|:-----:|:----------------------:|:-------:|:--------:|

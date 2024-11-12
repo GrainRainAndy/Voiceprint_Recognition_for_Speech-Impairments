@@ -209,7 +209,7 @@ def create_manifest_binary(train_manifest_path, test_manifest_path):
     """
     for manifest_path in [train_manifest_path, test_manifest_path]:
         dataset_writer = DatasetWriter(manifest_path)
-        with open(train_manifest_path, 'r', encoding='utf-8') as f:
+        with open(manifest_path, 'r', encoding='utf-8') as f:
             lines = f.readlines()
         for line in tqdm(lines):
             line = line.replace('\n', '')

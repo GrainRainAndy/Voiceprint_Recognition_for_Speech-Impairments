@@ -2,7 +2,6 @@ import argparse
 import functools
 import time
 
-from yeaudio.audio import AudioSegment
 from masr.predict import MASRPredictor
 from masr.utils.utils import add_arguments, print_arguments
 

@@ -167,19 +167,31 @@ class MASRTrainer(object):
         :param max_duration: 提取特征的最大时长，单位秒
         :type max_duration: int
         """
+        self.tokenizer = MASRTokenizer(**self.configs.tokenizer_conf)
         # 获取特征器
         self.audio_featurizer = AudioFeaturizer(feature_method=self.configs.preprocess_conf.feature_method,
                                                 method_args=self.configs.preprocess_conf.get('method_args', {}))
+        dataset_args = self.configs.dataset_conf.get('dataset', {})
+        dataset_args.max_duration = max_duration
+        data_loader_args = self.configs.dataset_conf.get('dataLoader', {})
         # 读取训练数据列表和测试数据列表
         for data_list_file in [self.configs.dataset_conf.train_manifest, self.configs.dataset_conf.test_manifest]:
             save_dir1 = os.path.join(save_dir, data_list_file.split('.')[-1])
             os.makedirs(save_dir1, exist_ok=True)
-            dataset_args = self.configs.dataset_conf.get('dataset', {})
-            dataset_args.max_duration = max_duration
             test_dataset = MASRDataset(data_manifest=data_list_file,
                                        audio_featurizer=self.audio_featurizer,
+                                       tokenizer=self.tokenizer,
                                        mode='eval',
                                        **dataset_args)
+            test_loader = DataLoader(dataset=test_dataset,
+                                     batch_size=self.configs.dataset_conf.batch_sampler.batch_size,
+                                     collate_fn=collate_fn,
+                                     shuffle=False,
+                                     **data_loader_args)
+            temp_feature, _ = test_dataset[-1]
+            data_list = test_dataset.get_one_list(idx=-1)
+            duration = data_list['duration']
+            time_scale = duration / temp_feature.shape[0]
             # 保存文件夹
             save_dir_num = f'{int(time.time())}'
             os.makedirs(os.path.join(str(save_dir1), save_dir_num), exist_ok=True)
@@ -187,31 +199,35 @@ class MASRTrainer(object):
             # 新的数据列表文件
             save_data_list = data_list_file.replace('manifest', 'manifest_features')
             with open(save_data_list, 'w', encoding='utf-8') as f:
-                for i in tqdm(range(len(test_dataset)), desc=f'[{data_list_file}]提取特征中...'):
-                    feature = test_dataset[i].numpy()
-                    data_list = test_dataset.get_one_list(idx=i)
-                    time_sum += data_list['duration']
-                    if all_feature is None:
-                        index += 1
-                        all_feature = feature
-                        if index >= 1000:
-                            index = 0
-                            save_dir_num = f'{int(time.time())}'
-                            os.makedirs(os.path.join(str(save_dir1), save_dir_num), exist_ok=True)
-                        save_path = os.path.join(str(save_dir1), save_dir_num,
-                                                 f'{int(time.time() * 1000)}.npy').replace('\\', '/')
-                    else:
-                        all_feature = np.concatenate((all_feature, feature), axis=0)
-                    new_data_list = {"audio_filepath": save_path,
-                                     "duration": data_list['duration'],
-                                     "text": data_list['text'],
-                                     "start_frame": all_feature.shape[0] - feature.shape[0],
-                                     "end_frame": all_feature.shape[0]}
-                    f.write(f'{json.dumps(new_data_list, ensure_ascii=False)}\n')
-                    # 把每10分钟的特征合并在一起
-                    if time_sum > 600:
-                        np.save(save_path, all_feature)
-                        all_feature, time_sum = None, 0
+                for inputs, labels, input_lens, label_lens in tqdm(test_loader, desc=f'[{data_list_file}]提取特征中...'):
+                    for i in range(len(labels)):
+                        feature, label, input_len, label_len = inputs[i], labels[i], input_lens[i], label_lens[i]
+                        feature = feature.numpy()[:input_len]
+                        label = label.numpy()[:label_len].tolist()
+                        label_str = self.tokenizer.ids2text(label)
+                        duration = round(feature.shape[0] * time_scale, 3)
+                        time_sum += duration
+                        if all_feature is None:
+                            index += 1
+                            all_feature = feature
+                            if index >= 1000:
+                                index = 0
+                                save_dir_num = f'{int(time.time())}'
+                                os.makedirs(os.path.join(str(save_dir1), save_dir_num), exist_ok=True)
+                            save_path = os.path.join(str(save_dir1), save_dir_num,
+                                                     f'{int(time.time() * 1000)}.npy').replace('\\', '/')
+                        else:
+                            all_feature = np.concatenate((all_feature, feature), axis=0)
+                        new_data_list = {"audio_filepath": save_path,
+                                         "duration": duration,
+                                         "text": label_str,
+                                         "start_frame": all_feature.shape[0] - feature.shape[0],
+                                         "end_frame": all_feature.shape[0]}
+                        f.write(f'{json.dumps(new_data_list, ensure_ascii=False)}\n')
+                        # 把每10分钟的特征合并在一起
+                        if time_sum > 600:
+                            np.save(save_path, all_feature)
+                            all_feature, time_sum = None, 0
                 if all_feature is not None:
                     np.save(save_path, all_feature)
             logger.info(f'[{data_list_file}]列表中的数据已提取特征完成，新列表为：[{save_data_list}]')

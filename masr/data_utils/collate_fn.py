@@ -1,6 +1,3 @@
-import random
-
-import numpy as np
 import torch
 
 
@@ -32,11 +29,4 @@ def collate_fn(batch):
         label_lens.append(label_length)
     input_lens = torch.tensor(input_lens, dtype=torch.int64)
     label_lens = torch.tensor(label_lens, dtype=torch.int64)
-    # 打乱数据
-    indices = np.arange(batch_size).tolist()
-    random.shuffle(indices)
-    inputs = inputs[indices]
-    labels = labels[indices]
-    input_lens = input_lens[indices]
-    label_lens = label_lens[indices]
     return inputs, labels, input_lens, label_lens

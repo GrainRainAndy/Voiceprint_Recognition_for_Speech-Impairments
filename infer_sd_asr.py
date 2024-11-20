@@ -12,7 +12,7 @@ add_arg('audio_path',       str,    'dataset/test_long.wav',       "预测音频
 add_arg('use_gpu',          bool,   True,                          "是否使用GPU预测")
 add_arg('use_punc',         bool,   False,                         "是否给识别结果加标点符号")
 add_arg('is_itn',           bool,   False,                         "是否对文本进行反标准化")
-add_arg('decoder',          str,    'ctc_greedy_search',           "解码器，支持 ctc_greedy_search、ctc_prefix_beam_search、attention_rescoring")
+add_arg('decoder',          str,    'ctc_greedy_search',           "解码器，支持 ctc_greedy_search、ctc_prefix_beam_search、attention_rescoring、ctc_beam_search")
 add_arg('decoder_configs',  str,    'configs/decoder.yml',         "解码器配置参数文件路径")
 add_arg('punc_device_id',   str,    '-1',                          "标点符合模型使用的设备，-1表示使用CPU预测，否则使用指定GPU预测")
 add_arg('punc_model_dir',   str,    None,                          "标点符号的模型文件夹路径")

@@ -69,7 +69,7 @@ class DeepSpeech2Model(nn.Module):
     @torch.jit.export
     def get_encoder_out(self, speech, speech_lengths):
         encoder_outs, encoder_lens, _, _ = self.encoder(speech, speech_lengths)
-        ctc_probs = self.decoder.softmax(encoder_outs)
+        ctc_probs = self.decoder.log_softmax(encoder_outs)
         return encoder_outs, ctc_probs, encoder_lens
 
     @torch.jit.export
@@ -78,7 +78,7 @@ class DeepSpeech2Model(nn.Module):
                               init_state_c: torch.Tensor = torch.zeros([0, 0, 0, 0])):
         eouts, eouts_len, final_chunk_state_h, final_chunk_state_c = \
             self.encoder(speech, speech_lengths, init_state_h, init_state_c)
-        ctc_probs = self.decoder.softmax(eouts)
+        ctc_probs = self.decoder.log_softmax(eouts)
         return ctc_probs, eouts_len, final_chunk_state_h, final_chunk_state_c
 
     def export(self):

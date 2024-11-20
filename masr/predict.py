@@ -46,9 +46,9 @@ class MASRPredictor:
             configs = json.load(f)
             print_arguments(configs=configs, title="模型参数配置")
         self.model_info = dict_to_object(configs)
-        if self.model_info.model_name == "DeepSpeech2Model":
-            assert decoder != "attention_rescoring", f'DeepSpeech2Model不支持使用{decoder}解码器！'
         self.decoder = decoder
+        if self.model_info.model_name == "DeepSpeech2Model":
+            assert self.decoder != "attention_rescoring", f'DeepSpeech2Model不支持使用{decoder}解码器！'
         # 读取解码器配置文件
         if isinstance(decoder_configs, str) and os.path.exists(decoder_configs):
             with open(decoder_configs, 'r', encoding='utf-8') as f:
@@ -74,6 +74,13 @@ class MASRPredictor:
         self.last_punc_text_len = 0
         self.last_chunk_time = 0
         self.reset_state_time = 30
+        self.beam_search_decoder = None
+        if self.decoder == "ctc_beam_search":
+            from masr.decoders.beam_search_decoder import BeamSearchDecoder
+            decoder_args = self.decoder_configs.get('ctc_beam_search_args', {})
+            self.beam_search_decoder = BeamSearchDecoder(vocab_list=self._tokenizer.vocab_list,
+                                                         blank_id=self._tokenizer.blank_id,
+                                                         **decoder_args)
         # 创建模型
         if not os.path.exists(model_path):
             raise Exception("模型文件不存在，请检查{}是否存在！".format(model_path))
@@ -123,10 +130,12 @@ class MASRPredictor:
         # 执行解码
         if self.decoder == "ctc_greedy_search":
             result = ctc_greedy_search(ctc_probs=ctc_probs, ctc_lens=ctc_lens, blank_id=self._tokenizer.blank_id)
+            text = self._tokenizer.ids2text(result[0])
         elif self.decoder == "ctc_prefix_beam_search":
             decoder_args = self.decoder_configs.get('ctc_prefix_beam_search_args', {})
             result, _ = ctc_prefix_beam_search(ctc_probs=ctc_probs, ctc_lens=ctc_lens,
                                                blank_id=self._tokenizer.blank_id, **decoder_args)
+            text = self._tokenizer.ids2text(result[0])
         elif self.decoder == "attention_rescoring":
             decoder_args = self.decoder_configs.get('attention_rescoring_args', {})
             result = attention_rescoring(model=self.predictor.model,
@@ -136,9 +145,11 @@ class MASRPredictor:
                                          encoder_outs=encoder_outs,
                                          encoder_lens=ctc_lens,
                                          **decoder_args)
+            text = self._tokenizer.ids2text(result[0])
+        elif self.decoder == "ctc_beam_search":
+            text = self.beam_search_decoder.ctc_beam_search_decoder_batch(ctc_probs=ctc_probs, ctc_lens=ctc_lens)
         else:
             raise ValueError(f"不支持该解码器：{self.decoder}")
-        text = self._tokenizer.ids2text(result[0])
 
         # 加标点符号
         if use_punc and len(text) > 0:

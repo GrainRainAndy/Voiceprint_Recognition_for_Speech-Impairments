@@ -24,10 +24,15 @@ MASR是一款基于Pytorch实现的自动语音识别框架，MASR全称是神�
  - Windows 11 or Ubuntu 22.04
 
 
-## 项目快速了解
 
- 1. 本项目支持流式识别模型`deepspeech2`、`conformer`，每个模型都支持流式识别和非流式识别，在配置文件中`streaming`参数设置。
- 2. 本项目支持三种解码器，分别是贪心解码器`ctc_greedy_search`、`ctc_prefix_beam_search`、`attention_rescoring`准确率更高。
+## 项目特点
+
+1. 支持多个语音识别模型，包含`deepspeech2`、`conformer`、`squeezeformer`、`efficient_conformer`等，每个模型都支持流式识别和非流式识别，在配置文件中`streaming`参数设置。
+2. 支持多种解码器，包含`ctc_greedy_search`、`ctc_prefix_beam_search`、`attention_rescoring`、`ctc_beam_search`等。
+3. 支持多种预处理方法，包含`fbank`、`mfcc`等。
+4. 支持多种数据增强方法，包含噪声增强、混响增强、语速增强、音量增强、重采样增强、位移增强、SpecAugmentor、SpecSubAugmentor等。
+5. 支持多种推理方法，包含短音频推理、长音频推理、流式推理、说话人分离推理等。
+6. 更多特点等待你发现。
 
 
 ## 更新记录
@@ -53,7 +58,10 @@ MASR是一款基于Pytorch实现的自动语音识别框架，MASR全称是神�
 |  Conformer  | True  | fbank |   ctc_greedy_search    | 0.06134 | 加入知识星球获取 |
 |  Conformer  | True  | fbank | ctc_prefix_beam_search | 0.06132 | 加入知识星球获取 |
 |  Conformer  | True  | fbank |  attention_rescoring   | 0.05366 | 加入知识星球获取 |
+|  Conformer  | True  | fbank |    ctc_beam_search     | 0.06138 | 加入知识星球获取 |
 | DeepSpeech2 | True  | fbank |   ctc_greedy_search    | 0.12000 | 加入知识星球获取 |
+| DeepSpeech2 | True  | fbank | ctc_prefix_beam_search |         | 加入知识星球获取 |
+| DeepSpeech2 | True  | fbank |    ctc_beam_search     |         | 加入知识星球获取 |
 
 
 3. [Librispeech](https://openslr.magicdatatech.com/resources/12) (960小时，英语) 的预训练模型列表，错误率类型为词错率（WER）：

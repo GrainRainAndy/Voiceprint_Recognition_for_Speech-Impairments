@@ -47,10 +47,11 @@ class BeamSearchDecoder:
         logger.info('=' * 70)
 
     def ctc_beam_search_decoder(self, ctc_probs):
-        # 判断ctc_probs是否为列表，如果不是则转换为列表
         if not isinstance(ctc_probs, list):
             ctc_probs = ctc_probs.tolist()
-
+        ctc_probs = np.array(ctc_probs)
+        # 必须要计算softmax，否则会导致结果不正确
+        ctc_probs = self.softmax(ctc_probs)
         # 初始化前缀集合，以制表符作为前缀，概率为1.0
         prefix_set_prev = {'\t': 1.0}
         # 初始化前缀为制表符时的空白概率和非空白概率
@@ -156,9 +157,6 @@ class BeamSearchDecoder:
         return result
 
     def ctc_beam_search_decoder_batch(self, ctc_probs, ctc_lens):
-        if not isinstance(ctc_probs, list):
-            ctc_probs = ctc_probs.tolist()
-            ctc_lens = ctc_lens.tolist()
         assert len(ctc_probs) == len(ctc_lens)
         # Windows系统不支持多进程
         beam_search_results = []
@@ -168,6 +166,9 @@ class BeamSearchDecoder:
                 beam_search_results.append(self.ctc_beam_search_decoder(ctc_prob))
             return beam_search_results
         # 使用多进程进行并行解码
+        if not isinstance(ctc_probs, list):
+            ctc_probs = ctc_probs.tolist()
+            ctc_lens = ctc_lens.tolist()
         pool = multiprocessing.Pool(processes=self.num_processes)
         results = []
         for i, ctc_prob in enumerate(ctc_probs):
@@ -177,6 +178,11 @@ class BeamSearchDecoder:
         pool.join()
         beam_search_results = [result.get() for result in results]
         return beam_search_results
+
+    @staticmethod
+    def softmax(x):
+        e_x = np.exp(x - np.max(x, axis=-1, keepdims=True))
+        return e_x / e_x.sum(axis=-1, keepdims=True)
 
 
 class Scorer(object):
@@ -212,19 +218,19 @@ class Scorer(object):
         self._alpha = alpha
         self._beta = beta
 
-    def __call__(self, sentence, log=False):
+    def __call__(self, sentence, use_log=False):
         """评估函数，收集所有不同的得分并返回最终得分
 
         :param sentence: 用于计算的输入句子
         :type sentence: str
-        :param log: 是否使用对数
-        :type log: bool
+        :param use_log: 是否使用对数
+        :type use_log: bool
         :return: 评价分数，用小数或对数表示
         :rtype: float
         """
         lm = self._language_model_score(sentence)
         word_cnt = self._word_count(sentence)
-        if not log:
+        if not use_log:
             score = np.power(lm, self._alpha) * np.power(word_cnt, self._beta)
         else:
             score = self._alpha * np.log(lm) + self._beta * np.log(word_cnt)
